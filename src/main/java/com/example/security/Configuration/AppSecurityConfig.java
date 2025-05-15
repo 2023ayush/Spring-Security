@@ -15,9 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration
-@EnableWebSecurity
-public class AppSecurityConfig {
+//@Configuration
+//@EnableWebSecurity
+//public class AppSecurityConfig {
 //    @Bean
 //    public PasswordEncoder getEncoder() {
 //        return new BCryptPasswordEncoder();
@@ -42,54 +42,110 @@ public class AppSecurityConfig {
 //        return http.build();
 //    }
 //}
+//
+//    @Autowired
+//    private CustomerUserDetailsService customerUserDetailsService;
+//
+//    String[] publicEndpoints = {
+//            "/api/v1/auth/register",
+//            "/api/v1/auth/login",
+//            "/api/v1/auth/update-password",
+//            "/v3/api-docs/**",
+//            "/swagger-ui/**",
+//            "/swagger-ui.html",
+//            "/swagger-resources/**",
+//            "/webjars/**"
+//    };
+//
+//    @Bean
+//    public PasswordEncoder getEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
+//
+//    @Bean
+//    public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
+//        return config.getAuthenticationManager();
+//    }
+//
+//    @Bean
+//    public AuthenticationProvider authProvider() {
+//
+//        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+//
+//        authProvider.setUserDetailsService(customerUserDetailsService);
+//        authProvider.setPasswordEncoder(getEncoder());
+//
+//        return authProvider;
+//    }
+//
+//    @Bean
+//    public SecurityFilterChain securityConfig(HttpSecurity http) throws Exception{
+//
+//        http.authorizeHttpRequests( req -> {
+//            req.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login")
+//                    .permitAll()
+//                    .anyRequest()
+//                    .authenticated();
+//        });
+//
+//        return http.csrf().disable().build();
+//    }
 
-    @Autowired
-    private CustomerUserDetailsService customerUserDetailsService;
 
-    String[] publicEndpoints = {
-            "/api/v1/auth/register",
-            "/api/v1/auth/login",
-            "/api/v1/auth/update-password",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/swagger-resources/**",
-            "/webjars/**"
-    };
+    //////////////////////////////For Role Based Access we should use this//////////////////////////////////////////
 
-    @Bean
-    public PasswordEncoder getEncoder() {
-        return new BCryptPasswordEncoder();
+    @Configuration
+    @EnableWebSecurity
+    public class AppSecurityConfig {
+
+        @Autowired
+        private CustomerUserDetailsService customerUserDetailsService;
+
+        String[] publicEndpoints = {
+                "/api/v1/auth/register",
+                "/api/v1/auth/login",
+                "/api/v1/auth/update-password",
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/swagger-resources/**",
+                "/webjars/**"
+        };
+
+        @Bean
+        public PasswordEncoder getEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+        public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
+            return config.getAuthenticationManager();
+        }
+
+        @Bean
+        public AuthenticationProvider authProvider() {
+
+            DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+            authProvider.setUserDetailsService(customerUserDetailsService);
+            authProvider.setPasswordEncoder(getEncoder());
+
+            return authProvider;
+        }
+
+        @Bean
+        public SecurityFilterChain securityConfig(HttpSecurity http) throws Exception {
+
+            http.authorizeHttpRequests(req -> {
+                req.requestMatchers(publicEndpoints)
+                        .permitAll()
+                        .requestMatchers("/api/v1/admin/welcome").hasRole("ADMIN")
+                        .anyRequest()
+                        .authenticated();
+            }).httpBasic();
+
+            return http.csrf().disable().build();
+        }
+
+
     }
-
-    @Bean
-    public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public AuthenticationProvider authProvider() {
-
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
-        authProvider.setUserDetailsService(customerUserDetailsService);
-        authProvider.setPasswordEncoder(getEncoder());
-
-        return authProvider;
-    }
-
-    @Bean
-    public SecurityFilterChain securityConfig(HttpSecurity http) throws Exception{
-
-        http.authorizeHttpRequests( req -> {
-            req.requestMatchers("/api/v1/auth/register", "/api/v1/auth/login")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated();
-        });
-
-        return http.csrf().disable().build();
-    }
-
-
-}

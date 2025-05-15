@@ -1,5 +1,7 @@
 package com.example.security.Dto;
 
+import jakarta.persistence.Column;
+
 public class UserDto {
 
     private long id;
@@ -8,6 +10,7 @@ public class UserDto {
     private String email;
     private String password;
 
+    private String role; //This one is added
     public long getId() {
         return id;
     }
@@ -46,5 +49,13 @@ public class UserDto {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }
