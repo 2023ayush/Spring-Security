@@ -1,6 +1,7 @@
 package com.example.security.Configuration;
 
 
+import com.example.security.JwtFilter;
 import com.example.security.Service.CustomerUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 //@Configuration
 //@EnableWebSecurity
@@ -94,58 +96,118 @@ import org.springframework.security.web.SecurityFilterChain;
 
     //////////////////////////////For Role Based Access we should use this//////////////////////////////////////////
 
-    @Configuration
-    @EnableWebSecurity
-    public class AppSecurityConfig {
+//    @Configuration
+//    @EnableWebSecurity
+//    public class AppSecurityConfig {
+//
+//        @Autowired
+//        private CustomerUserDetailsService customerUserDetailsService;
+//
+//        String[] publicEndpoints = {
+//                "/api/v1/auth/register",
+//                "/api/v1/auth/login",
+//                "/api/v1/auth/update-password",
+//                "/v3/api-docs/**",
+//                "/swagger-ui/**",
+//                "/swagger-ui.html",
+//                "/swagger-resources/**",
+//                "/webjars/**"
+//        };
+//
+//        @Bean
+//        public PasswordEncoder getEncoder() {
+//            return new BCryptPasswordEncoder();
+//        }
+//
+//        @Bean
+//        public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
+//            return config.getAuthenticationManager();
+//        }
+//
+//        @Bean
+//        public AuthenticationProvider authProvider() {
+//
+//            DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+//
+//            authProvider.setUserDetailsService(customerUserDetailsService);
+//            authProvider.setPasswordEncoder(getEncoder());
+//
+//            return authProvider;
+//        }
+//
+//        @Bean
+//        public SecurityFilterChain securityConfig(HttpSecurity http) throws Exception {
+//
+//            http.authorizeHttpRequests(req -> {
+//                req.requestMatchers(publicEndpoints)
+//                        .permitAll()
+//                        .requestMatchers("/api/v1/admin/welcome").hasRole("ADMIN")
+//                        .anyRequest()
+//                        .authenticated();
+//            }).httpBasic();
+//
+//            return http.csrf().disable().build();
+//        }
+//
+//
+//    }
+//////////////////////////////////////////FOR JWT TOKEN///////////////////////////////////////////////////////////
+@Configuration
+@EnableWebSecurity
+public class AppSecurityConfig {
 
-        @Autowired
-        private CustomerUserDetailsService customerUserDetailsService;
+    @Autowired
+    private CustomerUserDetailsService customerUserDetailsService;
 
-        String[] publicEndpoints = {
-                "/api/v1/auth/register",
-                "/api/v1/auth/login",
-                "/api/v1/auth/update-password",
-                "/v3/api-docs/**",
-                "/swagger-ui/**",
-                "/swagger-ui.html",
-                "/swagger-resources/**",
-                "/webjars/**"
-        };
+    @Autowired
+    private JwtFilter filter;
 
-        @Bean
-        public PasswordEncoder getEncoder() {
-            return new BCryptPasswordEncoder();
-        }
+    String[] publicEndpoints = {
+            "/api/v1/auth/register",
+            "/api/v1/auth/login",
+            "/api/v1/auth/update-password",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-resources/**",
+            "/webjars/**"
+    };
 
-        @Bean
-        public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
-            return config.getAuthenticationManager();
-        }
-
-        @Bean
-        public AuthenticationProvider authProvider() {
-
-            DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
-            authProvider.setUserDetailsService(customerUserDetailsService);
-            authProvider.setPasswordEncoder(getEncoder());
-
-            return authProvider;
-        }
-
-        @Bean
-        public SecurityFilterChain securityConfig(HttpSecurity http) throws Exception {
-
-            http.authorizeHttpRequests(req -> {
-                req.requestMatchers(publicEndpoints)
-                        .permitAll()
-                        .requestMatchers("/api/v1/admin/welcome").hasRole("ADMIN")
-                        .anyRequest()
-                        .authenticated();
-            }).httpBasic();
-
-            return http.csrf().disable().build();
-        }
-
-
+    @Bean
+    public PasswordEncoder getEncoder() {
+        return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public AuthenticationProvider authProvider() {
+
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(customerUserDetailsService);
+        authProvider.setPasswordEncoder(getEncoder());
+
+        return authProvider;
+    }
+
+    @Bean
+    public SecurityFilterChain securityConfig(HttpSecurity http) throws Exception{
+
+        http.authorizeHttpRequests( req -> {
+                    req.requestMatchers(publicEndpoints)
+                            .permitAll()
+                            .requestMatchers("/api/v1/admin/welcome").hasRole("ADMIN")
+                            .anyRequest()
+                            .authenticated();
+                }) .authenticationProvider(authProvider())
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.csrf().disable().build();
+    }
+
+
+}
